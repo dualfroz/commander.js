@@ -3,6 +3,7 @@ import esLintjs from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
+import nodeTest from 'eslint-node-test';
 
 // Only run tseslint on the files that we have included for TypeScript.
 const tsconfigTsFiles = ['**/*.{ts,mts}']; // match "include" in tsconfig.ts.json;
@@ -63,6 +64,19 @@ export default defineConfig(
           'ts-check': true,
         },
       ],
+    },
+  },
+  {
+    files: ['**/*.js'],
+    plugins: {
+      'node-test': nodeTest,
+    },
+    extends: ['node-test/recommended'],
+    rules: {
+      'node-test/prefer-test-context-assert': 'off', // we use callback parameter t to generate mocks, but do not want to use t.assertX (as t.assertX not automatically strict)
+      'node-test/no-useless-assertion': 'off', // we use `assert.doesNotThrow()` as only assert in multiple tests (so removing that assert triggers a different lint error)
+      'node-test/no-process-env-mutation': 'off', // we manage env in ways node-test does not recognise
+      'node-test/require-top-level-describe': 'error', // Enforce top-level describe for providing context in test output. Disable by hand on single test files.
     },
   },
 );

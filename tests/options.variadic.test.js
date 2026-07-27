@@ -9,9 +9,14 @@ describe('variadic options', () => {
       const program = createTestCommand();
       program.option('-r,--required <value...>');
 
-      assert.throws(() => {
-        program.parse(['--required'], { from: 'user' });
-      });
+      assert.throws(
+        () => {
+          program.parse(['--required'], { from: 'user' });
+        },
+        {
+          code: 'commander.optionMissingArgument',
+        },
+      );
     });
 
     test('when variadic with one value then set in array', () => {
@@ -171,14 +176,6 @@ describe('variadic options', () => {
 
       assert.equal(program.options[0].variadic, false);
     });
-  });
-
-  test('when option has default array then specified value is used instead of default (not appended)', () => {
-    const program = new commander.Command();
-    program.option('-c,--comma [value...]', 'values', ['default']);
-    program.parse(['--comma', 'CCC'], { from: 'user' });
-
-    assert.deepEqual(program.opts().comma, ['CCC']);
   });
 
   test('when option has default array then specified value is used instead of default (not appended)', () => {

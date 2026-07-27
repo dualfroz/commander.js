@@ -1,3 +1,4 @@
+/* eslint-disable node-test/no-conditional-assertion */
 import * as childProcess from 'child_process';
 import * as path from 'path';
 import * as util from 'util';
@@ -14,12 +15,12 @@ import assert from 'node:assert/strict';
 const testOrSkipOnWindows = process.platform === 'win32' ? test.skip : test;
 const pm = path.join(import.meta.dirname, './fixtures/pm');
 
-describe('executable subcommand lookup ', () => {
+describe('executable subcommand lookup', () => {
   test('when subcommand file missing then error', () => {
     return execFileAsync('node', [pm, 'list']).catch((err) => {
       if (process.platform === 'win32') {
         // Get uncaught thrown error on Windows
-        assert.ok(err.stderr !== undefined);
+        assert.notStrictEqual(err.stderr, undefined);
       } else {
         assert.match(err.stderr, /Error: 'pm-list' does not exist/);
       }
@@ -30,7 +31,7 @@ describe('executable subcommand lookup ', () => {
     return execFileAsync('node', [pm, 'lst']).catch((err) => {
       if (process.platform === 'win32') {
         // Get uncaught thrown error on Windows
-        assert.ok(err.stderr !== undefined);
+        assert.notStrictEqual(err.stderr, undefined);
       } else {
         assert.match(err.stderr, /Error: 'pm-list' does not exist/);
       }
