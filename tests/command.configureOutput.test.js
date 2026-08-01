@@ -336,22 +336,26 @@ describe('Command.configureOutput()', () => {
     assert.equal(program.configureOutput().getOutHelpWidth(), 80);
   });
 
-  describe('environment variable tests', () => {
-    [
+  test('environment variable tests', async (t) => {
+    const testCases = [
       ['NO_COLOR', false],
       ['FORCE_COLOR', true],
       ['CLICOLOR_FORCE', true],
-    ].forEach(([envvar, expected]) => {
-      test(`when ${envvar} then getFooHasColors returns ${expected}`, () => {
-        // Would like to vary process.istty too, but too hard, so tests here provide only partial cover.
-        const holdEnv = process.env[envvar];
-        process.env[envvar] = '1';
-        const config = new commander.Command().configureOutput();
-        assert.equal(config.getOutHasColors(), expected);
-        assert.equal(config.getErrHasColors(), expected);
-        if (holdEnv === undefined) delete process.env[envvar];
-        else process.env[envvar] = holdEnv;
-      });
-    });
+    ];
+    for (const [envvar, expected] of testCases) {
+      await t.test(
+        `when ${envvar} then getFooHasColors returns ${expected}`,
+        () => {
+          // Would like to vary process.istty too, but too hard, so tests here provide only partial cover.
+          const holdEnv = process.env[envvar];
+          process.env[envvar] = '1';
+          const config = new commander.Command().configureOutput();
+          assert.equal(config.getOutHasColors(), expected);
+          assert.equal(config.getErrHasColors(), expected);
+          if (holdEnv === undefined) delete process.env[envvar];
+          else process.env[envvar] = holdEnv;
+        },
+      );
+    }
   });
 });
