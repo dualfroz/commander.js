@@ -396,6 +396,46 @@ describe('positional options using Command.passThroughOptions() and Command.enab
         program.addCommand(sub);
       }, /passThroughOptions cannot be used for 'sub' without turning on enablePositionalOptions/);
     });
+
+    test('when parent positional but grandparent not positional and turn on passThroughOptions in grandchild then error', () => {
+      const program = new commander.Command();
+      const mid = program.command('mid').enablePositionalOptions();
+      const leaf = mid.command('leaf');
+
+      assert.throws(() => {
+        leaf.passThroughOptions();
+      }, /passThroughOptions cannot be used for 'leaf' without turning on enablePositionalOptions/);
+    });
+  });
+
+  describe('grandchild with passThrough', () => {
+    // A subcommand of a subcommand only gets a reliable pass-through of trailing
+    // options if every ancestor up to the program has positional options enabled,
+    // otherwise an ancestor may recognise its own same-named option anywhere in argv.
+    function makeProgram() {
+      const program = new commander.Command();
+      program.option('-d, --debug').enablePositionalOptions();
+      const mid = program.command('mid').enablePositionalOptions();
+      const leaf = mid
+        .command('leaf')
+        .argument('<utility>')
+        .argument('[args...]')
+        .passThroughOptions();
+      return { program, mid, leaf };
+    }
+
+    test('when known option after command-argument then option passed through to grandchild', () => {
+      const { program } = makeProgram();
+      let leafArgs;
+      program.commands[0].commands[0].action((utility, args) => {
+        leafArgs = [utility, ...args];
+      });
+      program.parse(['mid', 'leaf', 'git', 'push', '--debug'], {
+        from: 'user',
+      });
+      assert.deepEqual(leafArgs, ['git', 'push', '--debug']);
+      assert.equal(program.opts().debug, undefined);
+    });
   });
 
   // ------------------------------------------------------------------------------
